@@ -69,6 +69,8 @@ def playGame (screen):
 					diplo.state = JUMPING
 			elif event.key == pygame.K_DOWN:
 				diplo.bend()
+			elif event.key == pygame.K_LEFT:
+				diplo.attack()
 		elif event.type == pygame.KEYUP:
 			if event.key == pygame.K_DOWN:
 				diplo.stand_up()
