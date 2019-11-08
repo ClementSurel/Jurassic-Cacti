@@ -2,7 +2,7 @@ import pygame
 
 from constantes import *
 
-class Animated_object:	
+class Animated_object:
 
 	def is_alive(self):
 		if self.pos.left + self.pos.width < 0:

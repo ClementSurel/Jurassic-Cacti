@@ -98,7 +98,7 @@ def playGame (screen):
 		for e in ennemies:
 			e.move()
 			screen.blit(e.sprite, e.pos)
-	
+
 		# Eliminate dead ennemies
 		i = 0
 		while i < len(ennemies):
