@@ -1,3 +1,5 @@
+from random import randrange
+
 import pygame
 
 from constantes import *
@@ -5,12 +7,47 @@ import Dino
 import physics
 
 
+
+class Ennemy_gen:
+	def __init__(self, lap):
+		self.lap = lap
+		self.frame_counter = 0
+		self.n_ennemies = 0
+
+	def new(self):
+		self.frame_counter += 1
+		if self.frame_counter >= self.lap:
+			self.frame_counter = 0
+			random_number = randrange(2)
+			if random_number == 0:
+				self.n_ennemies += 1
+				return Dino.Cactus()
+			else:
+				self.n_ennemies += 1
+				return Dino.Bird()
+		else:
+			return None
+
+	def increase_frequency(self):
+		self.lap -= 10
+
+
+
+
+
 def playGame (screen):
 
+	# Score
+	score = 0
+
+	# Font
+	font = pygame.font.Font(pygame.font.get_default_font(), 80)
+
+
 	# Create the animated object
-	diplo = Dino.Dino("Sprites/diplo.png", "Sprites/diplo_bent.png")
-	cactus = Dino.Cactus("Sprites/cactus.png")
-	bird = Dino.Bird("Sprites/oiseau.png")
+	diplo = Dino.Dino()
+	ennemies = list()
+	ennemy_gen = Ennemy_gen(100)
 
 	# Load background
 	bg = pygame.image.load("Sprites/bg2.jpg")
@@ -20,8 +57,8 @@ def playGame (screen):
 	# Set a timer
 	timer = pygame.time.Clock()
 
+	# Game loop
 	continueGame = True
-	
 	while continueGame:
 		event = pygame.event.poll()
 		if event.type == pygame.QUIT:
@@ -36,12 +73,14 @@ def playGame (screen):
 			if event.key == pygame.K_DOWN:
 				diplo.stand_up()
 
-		timer.tick(40)
+		timer.tick(60)
+
+		# Call the ennemy generator
+		ennemy = ennemy_gen.new()
+		if ennemy != None:
+			ennemies.append(ennemy)
 
 		# Refresh the screen
-		diplo.next_move()
-		cactus.move()
-		bird.move()
 
 		# Scrolling of the background
 		pos_bg.left -= 1
@@ -52,15 +91,45 @@ def playGame (screen):
 		screen.blit(bg, pos_bg, area=bg_part)
 		pos_bg.left -= bg.get_width()
 
-		screen.blit(cactus.sprite, cactus.pos)
+		# Move the animated object
+		diplo.next_move()
 		screen.blit(diplo.sprite, diplo.pos)
-		screen.blit(bird.sprite, bird.pos)
+
+		for e in ennemies:
+			e.move()
+			screen.blit(e.sprite, e.pos)
 	
-		if physics.gotCollision (diplo.hitbox, cactus.hitbox) or physics.gotCollision (diplo.hitbox_neck, bird.hitbox):
-			continueProg = game_over(screen)
-			if not continueProg:
-				return False
-			continueGame = False
+		# Eliminate dead ennemies
+		i = 0
+		while i < len(ennemies):
+			if not ennemies[i].is_alive():
+				del ennemies[i]
+				score += 10
+			else:
+				i += 1
+
+		# print score
+		txt_score = font.render("SCORE : "+str(score), True, (0, 0, 0))
+		screen.blit(txt_score, (20, 20))
+
+		# Check for collisions
+		col = False
+		for e in ennemies:
+			if type(e) == Dino.Bird:
+				col = physics.gotCollision (diplo.hitbox_neck, e.hitbox)
+			elif type(e) == Dino.Cactus:
+				col = physics.gotCollision (diplo.hitbox, e.hitbox)
+			if col:
+				continueProg = game_over(screen)
+				if not continueProg:
+					return False
+				continueGame = False
+				break
+
+		# increases the difficulty
+		if ennemy_gen.n_ennemies >= 10:
+			ennemy_gen.n_ennemies = 0
+			ennemy_gen.increase_frequency()
 
 		pygame.display.flip()
 
@@ -68,10 +137,12 @@ def playGame (screen):
 
 
 
+
+
 def game_over (screen):
 
 	font = pygame.font.Font(pygame.font.get_default_font(), 175)
-	game_over = font.render("GAME OVER", 0, (0, 0, 0))
+	game_over = font.render("GAME OVER", True, (0, 0, 0))
 
 	continueGameOver = True
 

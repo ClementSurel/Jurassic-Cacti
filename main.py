@@ -1,3 +1,5 @@
+#!/usr/bin/python3.6
+
 from random import randrange
 
 import pygame
@@ -11,10 +13,13 @@ if __name__ == "__main__":
 	pygame.font.init()
 
 	# Set the screen
-	screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
+	screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), \
+										flags=pygame.HWSURFACE | pygame.DOUBLEBUF)
 
 	font = pygame.font.Font(pygame.font.get_default_font(), 100)
-	title = font.render("JURASSIC CACTI", 0, (80, 50, 180))
+	color = pygame.Color(randrange(255), randrange(255), randrange(255))
+	title = font.render("JURASSIC CACTI", True, color)
+	instruction = font.render("Press SPACE", True, color)
 
 	# Load background
 	bg = pygame.image.load("Sprites/bg2.jpg")
@@ -26,15 +31,19 @@ if __name__ == "__main__":
 	continueGame = True
 
 	while continueProg:
-		event = pygame.event.poll()
+		screen.blit(bg, pos_bg, area=bg_part)
+		screen.blit(title, ((screen.get_width()-title.get_width())/2, TITLE_Y))
+		screen.blit(instruction, ((screen.get_width()-instruction.get_width())/2, INSTRUCTION_Y))
+
+		pygame.display.flip()
+
+		event = pygame.event.wait()
 		if event.type == pygame.QUIT:
 			continueProg = False
 		elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-			continueProg = playGame (screen) 
+			continueProg = playGame (screen)
 
-		screen.blit(bg, pos_bg, area=bg_part)
-		screen.blit(title, ((screen.get_width()-title.get_width())/2, (screen.get_height()-title.get_height())/2))
-		pygame.display.flip()
+
 
 
 	pygame.font.quit()
