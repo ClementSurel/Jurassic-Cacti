@@ -18,13 +18,14 @@ class Ennemy_gen:
 		self.frame_counter += 1
 		if self.frame_counter >= self.lap:
 			self.frame_counter = 0
-			random_number = randrange(2)
+			random_number = randrange(3)
+			self.n_ennemies += 1
 			if random_number == 0:
-				self.n_ennemies += 1
 				return Cactus()
-			else:
-				self.n_ennemies += 1
+			elif random_number == 1:
 				return Bird()
+			else:
+				return Trex()
 		else:
 			return None
 
@@ -36,6 +37,8 @@ class Ennemy_gen:
 
 
 def playGame (screen):
+
+	first_cactus = False
 
 	# Score
 	score = 0
@@ -57,7 +60,9 @@ def playGame (screen):
 	# Set a timer
 	timer = pygame.time.Clock()
 
-	# Game loop
+
+
+	# GAME LOOP
 	continueGame = True
 	while continueGame:
 		event = pygame.event.poll()
@@ -80,6 +85,10 @@ def playGame (screen):
 		# Call the ennemy generator
 		ennemy = ennemy_gen.new()
 		if ennemy != None:
+			if type(ennemy) == Cactus and first_cactus == False:
+				msg = ["You meet a cactus!", "Press UP arrow to jump over it"]
+				#print_msg(screen, msg)
+				first_cactus = True
 			ennemies.append(ennemy)
 
 		# Refresh the screen
@@ -97,9 +106,34 @@ def playGame (screen):
 		diplo.next_move()
 		screen.blit(diplo.sprite, diplo.pos)
 
+		# print score
+		txt_score = font.render("SCORE : "+str(score), True, (0, 0, 0))
+		screen.blit(txt_score, (20, 20))
+
+		# Blit the ennemies
 		for e in ennemies:
 			e.move()
 			screen.blit(e.sprite, e.pos)
+
+		# Check for collisions
+		col = False
+		for e in ennemies:
+			if type(e) == Bird:
+				col = physics.gotCollision (diplo.hitbox_neck, e.hitbox)
+			elif type(e) == Cactus:
+				col = physics.gotCollision (diplo.hitbox, e.hitbox)
+			elif type(e) == Trex:
+				col = physics.gotCollision(diplo.hitbox, e.hitbox)
+				if col and diplo.state == ATTACKING:
+					e.getHurt()
+					col = False
+			if col:
+				msg = ["GAME OVER"]
+				continueProg = print_msg(screen, msg)
+				if not continueProg:
+					return False
+				continueGame = False
+				break
 
 		# Eliminate dead ennemies
 		i = 0
@@ -109,24 +143,6 @@ def playGame (screen):
 				score += 10
 			else:
 				i += 1
-
-		# print score
-		txt_score = font.render("SCORE : "+str(score), True, (0, 0, 0))
-		screen.blit(txt_score, (20, 20))
-
-		# Check for collisions
-		col = False
-		for e in ennemies:
-			if type(e) == Bird:
-				col = physics.gotCollision (diplo.hitbox_neck, e.hitbox)
-			elif type(e) == Cactus:
-				col = physics.gotCollision (diplo.hitbox, e.hitbox)
-			if col:
-				continueProg = game_over(screen)
-				if not continueProg:
-					return False
-				continueGame = False
-				break
 
 		# increases the difficulty
 		if ennemy_gen.n_ennemies >= 10:
@@ -140,23 +156,24 @@ def playGame (screen):
 
 
 
+def print_msg (screen, msg):
 
-def game_over (screen):
+	quitMsg = False
 
-	font = pygame.font.Font(pygame.font.get_default_font(), 175)
-	game_over = font.render("GAME OVER", True, (0, 0, 0))
+	font = pygame.font.Font(pygame.font.get_default_font(), 60)
+	
+	for i, m in enumerate(msg):
+		txt = font.render(m, True, (0, 0, 0))
+		txt_pos = ((screen.get_width()-txt.get_width())/2, (screen.get_height()-txt.get_height())/2+i*txt.get_height())
+		screen.blit(txt, txt_pos)
 
-	continueGameOver = True
-
-	screen.blit(game_over, ((screen.get_width()-game_over.get_width())/2, (screen.get_height()-game_over.get_height())/2))
 	pygame.display.flip()
 
-	while continueGameOver:
+	while not quitMsg:
 		event = pygame.event.wait()
 		if event.type == pygame.QUIT:
 			return False
 		if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-			continueGameOver = False
+			quitMsg = True
 
 	return True
-
