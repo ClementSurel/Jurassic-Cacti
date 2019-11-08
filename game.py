@@ -3,7 +3,7 @@ from random import randrange
 import pygame
 
 from constantes import *
-import Dino
+from game_elements import *
 import physics
 
 
@@ -21,10 +21,10 @@ class Ennemy_gen:
 			random_number = randrange(2)
 			if random_number == 0:
 				self.n_ennemies += 1
-				return Dino.Cactus()
+				return Cactus()
 			else:
 				self.n_ennemies += 1
-				return Dino.Bird()
+				return Bird()
 		else:
 			return None
 
@@ -45,7 +45,7 @@ def playGame (screen):
 
 
 	# Create the animated object
-	diplo = Dino.Dino()
+	diplo = Dino()
 	ennemies = list()
 	ennemy_gen = Ennemy_gen(100)
 
@@ -65,8 +65,8 @@ def playGame (screen):
 			return False
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_UP:
-				if diplo.state == Dino.WALKING:
-					diplo.state = Dino.JUMPING
+				if diplo.state == WALKING:
+					diplo.state = JUMPING
 			elif event.key == pygame.K_DOWN:
 				diplo.bend()
 		elif event.type == pygame.KEYUP:
@@ -115,9 +115,9 @@ def playGame (screen):
 		# Check for collisions
 		col = False
 		for e in ennemies:
-			if type(e) == Dino.Bird:
+			if type(e) == Bird:
 				col = physics.gotCollision (diplo.hitbox_neck, e.hitbox)
-			elif type(e) == Dino.Cactus:
+			elif type(e) == Cactus:
 				col = physics.gotCollision (diplo.hitbox, e.hitbox)
 			if col:
 				continueProg = game_over(screen)
